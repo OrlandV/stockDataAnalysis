@@ -3,6 +3,17 @@
 """
 
 
+def add_moving_average(data, window_size: int = 5):
+    """
+    Добавление в DataFrame колонки со скользящим средним, рассчитанным на основе цен закрытия.
+    :param data: DataFrame с данными.
+    :param window_size: Временное окно.
+    :return: DataFrame с данными.
+    """
+    data['Moving_Average'] = data['Close'].rolling(window=window_size).mean()
+    return data
+
+
 def calculate_and_display_average_price(data) -> None:
     """
     Вычисление и вывод в консоль средней цены закрытия акций за заданный период.

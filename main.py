@@ -1,6 +1,7 @@
 import data_download as dd
 import data_plotting as dplt
 import calculate
+import io_files
 
 
 def main():
@@ -17,7 +18,7 @@ def main():
     stock_data = dd.fetch_stock_data(ticker, period)
 
     # Add moving average to the data
-    stock_data = dd.add_moving_average(stock_data)
+    stock_data = calculate.add_moving_average(stock_data)
 
     # Plot the data
     dplt.create_and_save_plot(stock_data, ticker, period)
@@ -34,6 +35,11 @@ def main():
         except ValueError:
             print('Ошибка! Требуется указать число. Для отделения целой части от дробной используйте точку.')
     calculate.notify_if_strong_fluctuations(stock_data, threshold)
+
+    # Экспорт данных в CSV-файл.
+    csv_file = input('Для сохранения данных введите имя CSV-файла (путь) без расширения (по умолчанию — stock): ')
+    if io_files.export_data_to_csv(stock_data, csv_file):
+        print(f'Данные экспортированы в «{csv_file if csv_file else 'stock'}.csv».')
 
 
 if __name__ == "__main__":
