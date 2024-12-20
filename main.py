@@ -1,3 +1,4 @@
+import dateutil.parser as date_parser
 import data_download as dd
 import data_plotting as dplt
 import calculate
@@ -5,46 +6,80 @@ import io_files
 
 
 def main():
+    def add_indicator(data, func, indicator: str) -> tuple:
+        """
+        Добавление в DataFrame колонки с индикатором.
+        :param data: DataFrame с данными.
+        :param func: Функция соответствующего индикатора.
+        :param indicator: Наименование индикатора.
+        :return: Кортеж: DataFrame с данными и флаг добавления графика индикатора.
+        """
+        while True:
+            ind = input(f'Добавить индикатор {indicator}? y/N ')
+            if ind == 'N':
+                return data, False
+            elif ind == 'y' or ind == 'Y':
+                return func(data), True
+            else:
+                print('Ошибка ввода!')
+
     print("Добро пожаловать в инструмент получения и построения графиков биржевых данных.")
     print("Вот несколько примеров биржевых тикеров, которые вы можете рассмотреть: AAPL (Apple Inc), "
           "GOOGL (Alphabet Inc), MSFT (Microsoft Corporation), AMZN (Amazon.com Inc), TSLA (Tesla Inc).")
-    print("Общие периоды времени для данных о запасах включают: "
-          "1д, 5д, 1мес, 3мес, 6мес, 1г, 2г, 5л, 10л, с начала года, макс.")
+    print("Общие периоды времени для данных об акциях включают: "
+          "1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max.")
+    print('Вместо общих периодов можно указать начальную и конечную даты временного периода.')
 
-    ticker = input("Введите тикер акции (например, «AAPL» для Apple Inc): ")
-    period = input("Введите период для данных (например, '1mo' для одного месяца): ")
+    start = None
+    end = None
+    period = None
+    ticker = input('Введите тикер акции (например, «AAPL» для Apple Inc): ')
+    while True:
+        print('Выберите режим ввода временного периода:\n1 — общий период.\n2 — даты начала и конца.')
+        mode = input('Режим: ')
+        try:
+            mode = int(mode)
+            if mode not in (1, 2):
+                raise ValueError('Требуется ввод цифры 1 или 2.')
+            break
+        except ValueError as err:
+            print('Ошибка в введённых данных! Проверьте номер режима.', err)
+    if mode == 1:
+        while True:
+            period = input('Введите период для данных (например, «1mo» для одного месяца): ')
+            if period not in ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'):
+                print('Ошибка в введённых данных! Проверьте период. Ожидается один из вариантов: '
+                      '1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max.')
+            else:
+                break
+    else:
+        while True:
+            try:
+                start = input('Введите дату начала временного периода для данных '
+                              '(например, «2024-10-01» для 1 октября 2024): ')
+                start = date_parser.parse(start).strftime('%Y-%m-%d')  # Парсинг-проверка даты.
+                end = input('Введите дату конца временного периода для данных '
+                            '(например, «2025-01-01» для 31 декабря 2024): ')
+                end = date_parser.parse(end).strftime('%Y-%m-%d')  # Парсинг-проверка даты.
+                break
+            except ValueError as err:
+                print('Ошибка в введённых данных! Проверьте даты.', err)
 
     # Fetch stock data
-    stock_data = dd.fetch_stock_data(ticker, period)
+    stock_data = dd.fetch_stock_data(ticker, start, end, period)
+
+    # Замена в именах файлов общего периода точными датами при втором режиме.
+    if mode == 2:
+        period = f'{start}_{end}'
 
     # Add moving average to the data
     stock_data = calculate.add_moving_average(stock_data)
 
     # Добавление в DataFrame колонки с индикатором RSI.
-    while True:
-        rsi = input('Добавить индикатор RSI? y/N ')
-        if rsi == 'N':
-            rsi = False
-            break
-        elif rsi == 'y' or rsi == 'Y':
-            rsi = True
-            stock_data = calculate.add_rsi(stock_data)
-            break
-        else:
-            print('Ошибка ввода!')
+    stock_data, rsi = add_indicator(stock_data, calculate.add_rsi, 'RSI')
 
     # Добавление в DataFrame колонки с индикатором MACD.
-    while True:
-        macd = input('Добавить индикатор MACD? y/N ')
-        if macd == 'N':
-            macd = False
-            break
-        elif macd == 'y' or macd == 'Y':
-            macd = True
-            stock_data = calculate.add_macd(stock_data)
-            break
-        else:
-            print('Ошибка ввода!')
+    stock_data, macd = add_indicator(stock_data, calculate.add_macd, 'MACD')
 
     # Имя файла для сохранения графиков.
     filename = input('Для сохранения графиков введите имя PNG-файла (путь) без расширения '
