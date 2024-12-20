@@ -32,7 +32,7 @@ def main():
 
     start = None
     end = None
-    period = None
+    period = 'max'
     ticker = input('Введите тикер акции (например, «AAPL» для Apple Inc): ')
     while True:
         print('Выберите режим ввода временного периода:\n1 — общий период.\n2 — даты начала и конца.')
