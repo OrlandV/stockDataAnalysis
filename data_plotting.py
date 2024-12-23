@@ -7,7 +7,7 @@ from io_files import save_plot
 
 
 def create_and_save_plot(data, ticker: str, period: str, filename: str | None = None,
-                         rsi: bool = False, macd: bool = False) -> None:
+                         rsi: bool = False, macd: bool = False, style: str | None = None) -> None:
     """
     Создание графика, отображающего цены закрытия и скользящие средние.
     Предоставляет возможность добавления индикаторов RSI и MACD, а так же сохранения графика в файл.
@@ -17,8 +17,11 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
     :param filename: Путь и имя файла для сохранения.
     :param rsi: Флаг добавления индикатора RSI.
     :param macd: Флаг добавления индикатора MACD.
+    :param style: Стиль графиков.
     """
     rows = 1 + rsi + macd
+    if style:
+        plt.style.use(style)
     if rows == 1:  # Индикаторы не добавлять.
         plt.figure(figsize=(10, 6))
         plt.title(f"{ticker} Цена акций с течением времени")
@@ -73,5 +76,6 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
         plt_macd.grid()
     plt.xlabel("Дата")
 
-    filename = f'{ticker}_{period}_stock_price_chart.png' if filename is None else filename + '.png'
+    filename = (f'{ticker}_{period}_stock_price_chart{'' if style is None else '_' + style}.png'
+                if filename is None else filename + '.png')
     save_plot(plt, filename)
