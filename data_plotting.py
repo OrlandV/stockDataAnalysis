@@ -7,7 +7,7 @@ from io_files import save_plot
 
 
 def create_and_save_plot(data, ticker: str, period: str, filename: str | None = None,
-                         rsi: bool = False, macd: bool = False, style: str | None = None) -> None:
+                         rsi: bool = False, macd: bool = False, std: bool = False, style: str | None = None) -> None:
     """
     Создание графика, отображающего цены закрытия и скользящие средние.
     Предоставляет возможность добавления индикаторов RSI и MACD, а так же сохранения графика в файл.
@@ -17,9 +17,10 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
     :param filename: Путь и имя файла для сохранения.
     :param rsi: Флаг добавления индикатора RSI.
     :param macd: Флаг добавления индикатора MACD.
+    :param std: Флаг добавления индикатора STD — стандартного отклонения.
     :param style: Стиль графиков.
     """
-    rows = 1 + rsi + macd
+    rows = 1 + rsi + macd + std
     if style:
         plt.style.use(style)
     if rows == 1:  # Индикаторы не добавлять.
@@ -32,7 +33,10 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
         plt_c_mv = axs[0]
         plt_c_mv.set_title(f"{ticker} Цена акций с течением времени")
         plt_c_mv.set_ylabel('Цена')
-        plt_macd = axs[1] if macd and not rsi else axs[2]
+        if macd:
+            plt_macd = axs[1] if not rsi else axs[2]
+        if std:
+            plt_std = axs[1] if rows == 2 else axs[2] if rows == 3 else axs[3]
     if 'Date' not in data:
         if pd.api.types.is_datetime64_any_dtype(data.index):
             dates = data.index.to_numpy()
@@ -48,6 +52,9 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
                 plt_macd.plot(dates, data['MACD'].values, color='#2962FF')
                 plt_macd.bar(dates, data['MACD_H'].values, color='#26A69A')
                 # color=('#26A69A' if data['MACD_H'].values.all() and data['MACD_H'].values.all() > 0 else '#FF5252')
+            if std:
+                plt_std.plot(dates, pd.Series(0, dates), color='black', linewidth=0.5)
+                plt_std.plot(dates, data['STD'].values)
         else:
             print("Информация о дате отсутствует или не имеет распознаваемого формата.")
             return
@@ -66,14 +73,20 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
             plt_macd.plot(data['Date'], data['MACD'], color='#2962FF')
             plt_macd.bar(data['Date'], data['MACD_H'], color='#26A69A')
             # color=('#26A69A' if data['MACD_H'] and data['MACD_H'] > 0 else '#FF5252')
+        if std:
+            plt_std.plot(data['Date'], pd.Series(0, data['Date']), color='black', linewidth=0.5)
+            plt_std.plot(data['Date'], data['STD'])
     plt_c_mv.legend()
     plt_c_mv.grid()
     if rsi:
-        axs[1].set_ylabel("RSI")
+        axs[1].set_ylabel('RSI')
         axs[1].grid()
     if macd:
-        plt_macd.set_ylabel("MACD")
+        plt_macd.set_ylabel('MACD')
         plt_macd.grid()
+    if std:
+        plt_std.set_ylabel('STD')
+        plt_std.grid()
     plt.xlabel("Дата")
 
     filename = (f'{ticker}_{period}_stock_price_chart{'' if style is None else '_' + style}.png'

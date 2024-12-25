@@ -133,18 +133,21 @@ def main():
     # Добавление в DataFrame колонки с индикатором MACD.
     stock_data, macd = add_indicator(stock_data, calculate.add_macd, 'MACD')
 
+    # Добавление в DataFrame колонки с индикатором STD.
+    stock_data, std = add_indicator(stock_data, calculate.add_std, 'STD (стандартного отклонения)')
+
     # Выбор стиля графиков.
     style = select_style()
 
     # Имя файла для сохранения графиков.
     filename = input('Для сохранения графиков введите имя PNG-файла (путь) без расширения '
-                     f'(по умолчанию — {ticker}_{period}_stock_price_chart'
-                     f'{'' if style is None else '_' + style}.png): ')
+                     f'(по умолчанию — «{ticker}_{period}_stock_price_chart'
+                     f'{'' if style is None else '_' + style}.png»): ')
     if not filename:
         filename = None
 
     # Plot the data
-    dplt.create_and_save_plot(stock_data, ticker, period, filename, rsi, macd, style)
+    dplt.create_and_save_plot(stock_data, ticker, period, filename, rsi, macd, std, style)
 
     # Вычисление и вывод в консоль средней цены закрытия акций за заданный период.
     calculate.calculate_and_display_average_price(stock_data)

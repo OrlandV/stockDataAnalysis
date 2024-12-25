@@ -3,7 +3,7 @@
 """
 
 # from technical_indicator.momentum import RSI, MACDHistogram
-# pandas_ta и stock-indicators оказались несовместимы с текущем стеком.
+# pandas_ta и stock-indicators оказались несовместимы с текущим стеком.
 
 
 def add_moving_average(data, window_size: int = 5):
@@ -84,4 +84,9 @@ def add_macd(data, fast_periods: int = 12, slow_periods: int = 26, signal_period
     data['MACD'] = data.index.map(macd)
     data['MACD_H'] = data.index.map(macd_h)
     data['MACD_S'] = data.index.map(macd_s)
+    return data
+
+
+def add_std(data, window: int = 20):
+    data['STD'] = data['Close'].rolling(window).std()
     return data
