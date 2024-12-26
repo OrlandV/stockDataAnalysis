@@ -4,13 +4,15 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from io_files import save_plot
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 
 def create_and_save_plot(data, ticker: str, period: str, filename: str | None = None,
                          rsi: bool = False, macd: bool = False, std: bool = False, style: str | None = None) -> None:
     """
     Создание графика, отображающего цены закрытия и скользящие средние.
-    Предоставляет возможность добавления индикаторов RSI и MACD, а так же сохранения графика в файл.
+    Предоставляет возможность добавления индикаторов RSI, MACD и STD, а так же сохранения графика в файл.
     :param data: DataFrame с данными.
     :param ticker: Тикер.
     :param period: Временной период.
@@ -36,7 +38,7 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
         if macd:
             plt_macd = axs[1] if not rsi else axs[2]
         if std:
-            plt_std = axs[1] if rows == 2 else axs[2] if rows == 3 else axs[3]
+            plt_std = axs[rows - 1]
     if 'Date' not in data:
         if pd.api.types.is_datetime64_any_dtype(data.index):
             dates = data.index.to_numpy()
@@ -92,3 +94,161 @@ def create_and_save_plot(data, ticker: str, period: str, filename: str | None = 
     filename = (f'{ticker}_{period}_stock_price_chart{'' if style is None else '_' + style}.png'
                 if filename is None else filename + '.png')
     save_plot(plt, filename)
+
+
+def inter_plot(data, ticker: str, rsi: bool = False, macd: bool = False, std: bool = False) -> None:
+    """
+    Создание интерактивного графика, отображающего цены закрытия и скользящие средние.
+    Предоставляет возможность добавления индикаторов RSI, MACD и STD.
+    :param data: DataFrame с данными.
+    :param ticker: Тикер.
+    :param rsi: Флаг добавления индикатора RSI.
+    :param macd: Флаг добавления индикатора MACD.
+    :param std: Флаг добавления индикатора STD — стандартного отклонения.
+    """
+    rows = 1 + rsi + macd + std
+
+    # Вариант 1. Под курсором выводится информация по всем фигурам.
+    # layout = dict(
+    #     hoversubplots="axis",
+    #     title=dict(text=f"{ticker} Цена акций с течением времени"),
+    #     hovermode="x",
+    #     grid=dict(rows=rows, columns=1)
+    # )
+    # data_ = []
+    # if 'Date' not in data:
+    #     if pd.api.types.is_datetime64_any_dtype(data.index):
+    #         dates = data.index.to_numpy()
+    #         data_.append(go.Scatter(x=dates, y=data['Close'].values, xaxis="x", yaxis="y", name='Цена закрытия'))
+    #         data_.append(go.Scatter(x=dates, y=data['Moving_Average'].values, xaxis="x", yaxis="y",
+    #                                 name='Скользящее среднее'))
+    #         if rsi:
+    #             data_.append(go.Scatter(x=dates, y=pd.Series(30, dates), xaxis="x", yaxis="y2", line=dict(width=1),
+    #                                     hovertemplate='<extra></extra>', showlegend=False))
+    #             data_.append(go.Scatter(x=dates, y=pd.Series(70, dates), xaxis="x", yaxis="y2", line=dict(width=1),
+    #                                     hovertemplate='<extra></extra>', showlegend=False))
+    #             data_.append(go.Scatter(x=dates, y=data['RSI'].values, xaxis="x", yaxis="y2", name='RSI',
+    #                                     showlegend=False))
+    #         if macd:
+    #             data_.append(go.Scatter(x=dates, y=pd.Series(0, dates), xaxis="x", yaxis="y3", showlegend=False,
+    #                                     line=dict(color='#000000', width=0.5), hovertemplate='<extra></extra>'))
+    #             data_.append(go.Scatter(x=dates, y=data['MACD_S'].values, xaxis="x", yaxis="y3", name='MACD_S',
+    #                                     line=dict(color='#FF6D00'), showlegend=False))
+    #             data_.append(go.Scatter(x=dates, y=data['MACD'].values, xaxis="x", yaxis="y3", name='MACD',
+    #                                     line=dict(color='#2962FF'), showlegend=False))
+    #             data_.append(go.Bar(x=dates, y=data['MACD_H'].values, xaxis="x", yaxis="y3", name='MACD_H',
+    #                                 marker=dict(color='#26A69A'), showlegend=False))
+    #         if std:
+    #             data_.append(go.Scatter(x=dates, y=pd.Series(0, dates), xaxis="x", yaxis="y4", showlegend=False,
+    #                                     line=dict(color='#000000', width=0.5), hovertemplate='<extra></extra>'))
+    #             data_.append(go.Scatter(x=dates, y=data['STD'].values, xaxis="x", yaxis="y4", name='STD',
+    #                                     showlegend=False))
+    #     else:
+    #         print("Информация о дате отсутствует или не имеет распознаваемого формата.")
+    #         return
+    # else:
+    #     if not pd.api.types.is_datetime64_any_dtype(data['Date']):
+    #         data['Date'] = pd.to_datetime(data['Date'])
+    #     data_.append(go.Scatter(x=data['Date'], y=data['Close'], xaxis="x", yaxis="y", name='Цена закрытия'))
+    #     data_.append(go.Scatter(x=data['Date'], y=data['Moving_Average'], xaxis="x", yaxis="y",
+    #                             name='Скользящее среднее'))
+    #     if rsi:
+    #         data_.append(go.Scatter(x=data['Date'], y=pd.Series(30, data['Date']), xaxis="x", yaxis="y2",
+    #                                 line=dict(width=1), hovertemplate='<extra></extra>', showlegend=False))
+    #         data_.append(go.Scatter(x=data['Date'], y=pd.Series(70, data['Date']), xaxis="x", yaxis="y2",
+    #                                 line=dict(width=1), hovertemplate='<extra></extra>', showlegend=False))
+    #         data_.append(go.Scatter(x=data['Date'], y=data['RSI'], xaxis="x", yaxis="y2", name='RSI',
+    #                                 showlegend=False))
+    #     if macd:
+    #         data_.append(go.Scatter(x=data['Date'], y=pd.Series(0, data['Date']), xaxis="x", yaxis="y3",
+    #                                 line=dict(color='#000000', width=0.5), hovertemplate='<extra></extra>',
+    #                                 showlegend=False))
+    #         data_.append(go.Scatter(x=data['Date'], y=data['MACD_S'], xaxis="x", yaxis="y3", name='MACD_S',
+    #                                 line=dict(color='#FF6D00'), showlegend=False))
+    #         data_.append(go.Scatter(x=data['Date'], y=data['MACD'], xaxis="x", yaxis="y3", name='MACD',
+    #                                 line=dict(color='#2962FF'), showlegend=False))
+    #         data_.append(go.Bar(x=data['Date'], y=data['MACD_H'], xaxis="x", yaxis="y3", name='MACD_H',
+    #                             marker=dict(color='#26A69A'), showlegend=False))
+    #     if std:
+    #         data_.append(go.Scatter(x=data['Date'], y=pd.Series(0, data['Date']), xaxis="x", yaxis="y4",
+    #                                 line=dict(color='#000000', width=0.5), hovertemplate='<extra></extra>',
+    #                                 showlegend=False))
+    #         data_.append(go.Scatter(x=data['Date'], y=data['STD'], xaxis="x", yaxis="y4", name='STD',
+    #                                 showlegend=False))
+    # fig = go.Figure(data=data_, layout=layout)
+
+    # Вариант 2. Высота фигур индикаторов 1/3 высоты основной фигуры.
+    if macd:
+        row_macd = 2 if not rsi else 3
+    fig = make_subplots(rows=rows, cols=1, row_heights=[1 if r else 3 for r in range(rows)])
+    if 'Date' not in data:
+        if pd.api.types.is_datetime64_any_dtype(data.index):
+            dates = data.index.to_numpy()
+            fig.add_trace(go.Scatter(x=dates, y=data['Close'].values, name='Цена закрытия'), 1, 1)
+            fig.add_trace(go.Scatter(x=dates, y=data['Moving_Average'].values, name='Скользящее среднее'), 1, 1)
+            if rsi:
+                fig.add_trace(go.Scatter(x=dates, y=pd.Series(30.0, dates), showlegend=False, line=dict(width=1),
+                                         hovertemplate='<extra></extra>'), 2, 1)
+                fig.add_trace(go.Scatter(x=dates, y=pd.Series(70.0, dates), showlegend=False, line=dict(width=1),
+                                         hovertemplate='<extra></extra>'), 2, 1)
+                fig.add_trace(go.Scatter(x=dates, y=data['RSI'].values, name='RSI', showlegend=False), 2, 1)
+            if macd:
+                fig.add_trace(go.Scatter(x=dates, y=pd.Series(0, dates), hovertemplate='<extra></extra>',
+                                         line=dict(color='#000000', width=0.5), showlegend=False), row_macd, 1)
+                fig.add_trace(go.Scatter(x=dates, y=data['MACD_S'].values, line=dict(color='#FF6D00'),
+                                         showlegend=False, name='MACD_S'), row_macd, 1)
+                fig.add_trace(go.Scatter(x=dates, y=data['MACD'].values, line=dict(color='#2962FF'),
+                                         showlegend=False, name='MACD'), row_macd, 1)
+                fig.add_trace(go.Bar(x=dates, y=data['MACD_H'].values, marker=dict(color='#26A69A'), name='MACD_H',
+                                     showlegend=False), row_macd, 1)
+            if std:
+                fig.add_trace(go.Scatter(x=dates, y=pd.Series(0, dates), hovertemplate='<extra></extra>',
+                                         showlegend=False, line=dict(color='#000000', width=0.5)), rows, 1)
+                fig.add_trace(go.Scatter(x=dates, y=data['STD'].values, name='STD', showlegend=False), rows, 1)
+        else:
+            print("Информация о дате отсутствует или не имеет распознаваемого формата.")
+            return
+    else:
+        if not pd.api.types.is_datetime64_any_dtype(data['Date']):
+            data['Date'] = pd.to_datetime(data['Date'])
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], name='Цена закрытия'), 1, 1)
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Moving_Average'], name='Скользящее среднее'), 1, 1)
+        if rsi:
+            fig.add_trace(go.Scatter(x=data['Date'], y=pd.Series(30.0, data['Date']), showlegend=False,
+                                     hovertemplate='<extra></extra>', line=dict(width=1)), 2, 1)
+            fig.add_trace(go.Scatter(x=data['Date'], y=pd.Series(70.0, data['Date']), showlegend=False,
+                                     hovertemplate='<extra></extra>', line=dict(width=1)), 2, 1)
+            fig.add_trace(go.Scatter(x=data['Date'], y=data['RSI'], name='RSI', showlegend=False), 2, 1)
+        if macd:
+            fig.add_trace(go.Scatter(x=data['Date'], y=pd.Series(0, data['Date']), showlegend=False,
+                                     hovertemplate='<extra></extra>', line=dict(color='#000000', width=0.5)),
+                          row_macd, 1)
+            fig.add_trace(go.Scatter(x=data['Date'], y=data['MACD_S'], line=dict(color='#FF6D00'), name='MACD_S',
+                                     showlegend=False), row_macd, 1)
+            fig.add_trace(go.Scatter(x=data['Date'], y=data['MACD'], line=dict(color='#2962FF'), name='MACD',
+                                     showlegend=False), row_macd, 1)
+            fig.add_trace(go.Bar(x=data['Date'], y=data['MACD_H'], marker=dict(color='#26A69A'), name='MACD_H',
+                                 showlegend=False), row_macd, 1)
+        if std:
+            fig.add_trace(go.Scatter(x=data['Date'], y=pd.Series(0, data['Date']), showlegend=False,
+                                     hovertemplate='<extra></extra>', line=dict(color='#000000', width=0.5)), rows, 1)
+            fig.add_trace(go.Scatter(x=data['Date'], y=data['STD'], name='STD', showlegend=False), rows, 1)
+    fig.update_layout(
+        hovermode='x',
+        legend=dict(x=1, y=1.04, xanchor='right', yanchor='top'),
+        legend_orientation='h',
+        title=f"{ticker} Цена акций с течением времени",
+        yaxis_title='Цена'
+    )
+    if rsi:
+        fig.update_xaxes(showticklabels=False, row=1, col=1)
+        fig.update_yaxes(title='RSI', row=2, col=1)
+    if macd:
+        fig.update_xaxes(showticklabels=False, row=row_macd - 1, col=1)
+        fig.update_yaxes(title='MACD', row=row_macd, col=1)
+    if std:
+        fig.update_xaxes(showticklabels=False, row=rows - 1, col=1)
+        fig.update_yaxes(title='STD', row=rows, col=1)
+    fig.update_xaxes(title='Дата', row=rows, col=1)
+
+    fig.show()

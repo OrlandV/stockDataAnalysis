@@ -160,6 +160,9 @@ def main():
     if io_files.export_data_to_csv(stock_data, csv_file):
         print(f'Данные экспортированы в «{csv_file if csv_file else 'stock'}.csv».')
 
+    # Интерактивные графики.
+    dplt.inter_plot(stock_data, ticker, rsi, macd, std)
+
 
 if __name__ == "__main__":
     main()

@@ -9,19 +9,21 @@
 6. вычисляет и выводит в консоль среднюю цену закрытия акций за указанный период,
 7. уведомляет пользователя (в консоли), если цена акций колебалась более чем на заданный процент за период,
 8. сохраняет данные в CSV.
+9. строит интерактивные графики.
 
 ## ⚙ Зависимости
 
 Разработка и тестирование производились на стеке:
 
-![Static Badge](https://img.shields.io/badge/Python-3.12.7-%233776AB)
+![Static Badge](https://img.shields.io/badge/Python-3.12.7-3776AB)
 ![Static Badge](https://img.shields.io/badge/yfinance-0.2.50-black)
-![Static Badge](https://img.shields.io/badge/pandas-2.2.3-black)
+![Static Badge](https://img.shields.io/badge/pandas-2.2.3-150458)
 ![Static Badge](https://img.shields.io/badge/matplotlib-3.9.3-black)
+![Static Badge](https://img.shields.io/badge/Plotly-5.24.1-3F4F75)
 
 Установка библиотек:
 ```bash
-pip install yfinance pandas matplotlib
+pip install yfinance pandas matplotlib plotly
 ```
 
 ## 🖥 Использование
@@ -171,6 +173,7 @@ pip install yfinance pandas matplotlib
     ```
 22. Данные сохранятся в указанный файл, либо в `stock.csv`.
 23. Выводится уведомление о сохранении (экспорте) данных с указанием имени файла, либо сообщение об ошибке.
+24. Строятся интерактивные графики и отображаются в браузере.
 
 ## Примеры графиков
 ### GOOGL_6mo_stock_price_chart
@@ -181,3 +184,5 @@ pip install yfinance pandas matplotlib
 ![TSLA_2024-01-01_2024-12-23_stock_price_chart_dark_background.png](README_images/TSLA_2024-01-01_2024-12-23_stock_price_chart_dark_background.png)
 ### GOOGL_1y_stock_price_chart_dark_background
 ![GOOGL_1y_stock_price_chart_dark_background.png](README_images/GOOGL_1y_stock_price_chart_dark_background.png)
+### GOOGL_1y_stock_price_chart в интерактивном варианте
+![GOOGL_1y_stock_price_chart_inter.png](README_images/GOOGL_1y_stock_price_chart_inter.png)
